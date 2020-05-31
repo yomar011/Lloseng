@@ -105,7 +105,14 @@ public class ClientConsole implements ChatIF
   public static void main(String[] args) 
   {
     String host = "";
-    int port = 0;  //The port number
+   // **** Changed for E5 Part b to let users input the desired port number
+    Scanner scan = new Scanner(System.in);
+    System.out.println("Please Enter your  port number that matches with the server port number already inserted");
+    int port = scan.nextInt();  //The port number
+    if(port<4092) {
+    	System.out.println("Port Number indicated is not dynamic");
+    	System.exit(0);
+    }
 
     try
     {

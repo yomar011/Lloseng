@@ -73,7 +73,14 @@ public class EchoServer extends AbstractServer
   }
   
   //Class methods ***************************************************
+    // **** Changed for E5 Part c
+  protected void clientConnected(ConnectionToClient client) {
+	  System.out.println("Please be informed that the client is successfully connected (Question E5 part c);
+  }
   
+  synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
+	  System.out.println("Please be informed that the client is successfully disconnected (Question E5 part c);
+  } 
   /**
    * This method is responsible for the creation of 
    * the server instance (there is no UI in this phase).
@@ -83,7 +90,15 @@ public class EchoServer extends AbstractServer
    */
   public static void main(String[] args) 
   {
-    int port = 0; //Port to listen on
+	  // **** Changed for E5 Part c to let users input the desired port number
+	  Scanner scan = new Scanner(System.in);
+	  System.out.println("Please Enter any Dynamic Port Number");
+	  int port = scan.nextInt();  //The port number
+    if(port<4092) {
+    	System.out.println("Port Number indicated is not dynamic");
+    	System.exit(0);
+    }
+
 
     try
     {

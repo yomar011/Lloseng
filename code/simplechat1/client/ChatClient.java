@@ -90,5 +90,22 @@ public class ChatClient extends AbstractClient
     catch(IOException e) {}
     System.exit(0);
   }
+ //**** Changed for E5 part a:
+  // IMPLEMENTED THE connectionClosed Hook as well as the connectionException Hook
+  public void connectionClosed() {
+	
+	  try {
+		  if(!isConnected()) {
+			  closeConnection();
+			  }
+	  }catch(IOException e) {
+		  connectionException(e);
+	  }
+	  
+	}
+//**** Changed for E5 part a:
+  protected void connectionException(Exception exception) {
+	  System.exit(0);
+	}
 }
 //End of ChatClient class
