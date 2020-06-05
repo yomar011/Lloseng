@@ -3,11 +3,11 @@
 // license found at www.lloseng.com 
 
 import java.io.*;
-import client.*;
 import common.*;
+import ocsf.server.*;
 
 /**
- * This class constructs the UI for a chat client.  It implements the
+ * This class constructs the UI for a chat server.  It implements the
  * chat interface in order to activate the display() method.
  * Warning: Some of the code here is cloned in ServerConsole 
  *
@@ -16,7 +16,10 @@ import common.*;
  * @author Dr Robert Lagani&egrave;re
  * @version July 2000
  */
-public class ClientConsole implements ChatIF 
+ 
+  //**** Class added for question 6b. It allows user input into the server side.
+ 
+public class ServerConsole implements ChatIF 
 {
   //Class variables *************************************************
   
@@ -28,38 +31,34 @@ public class ClientConsole implements ChatIF
   //Instance variables **********************************************
   
   /**
-   * The instance of the client that created this ConsoleChat.
+   * The instance of the server that created this ConsoleChat.
    */
-  ChatClient client;
+  EchoServer server;
 
   
   //Constructors ****************************************************
 
   /**
-   * Constructs an instance of the ClientConsole UI.
+   * Constructs an instance of the ServerConsole UI.
    *
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String loginID, String host, int port) 
+  public ServerConsole(int port) 
   {
-    try 
-    {
-      client= new ChatClient(loginID, host, port, this);
-    } 
-    catch(IOException exception) 
-    {
-      System.out.println("Error: Can't setup connection!" + " Terminating client.");
-      System.exit(1);
-    }
+	server = new EchoServer(port);
+	try {
+		server.listen();
+	} catch (IOException e) {
+		System.out.println("ERROR - Could not listen for clients!");
+	}
   }
-
   
   //Instance methods ************************************************
   
   /**
    * This method waits for input from the console.  Once it is 
-   * received, it sends it to the client's message handler.
+   * received, it sends it to the server's message handler.
    */
   public void accept() 
   {
@@ -72,7 +71,7 @@ public class ClientConsole implements ChatIF
       while (true) 
       {
         message = fromConsole.readLine();
-        client.handleMessageFromClientUI(message);
+        server.handleMessageFromServerUI(message);
       }
     } 
     catch (Exception ex) 
@@ -90,7 +89,7 @@ public class ClientConsole implements ChatIF
    */
   public void display(String message) 
   {
-    System.out.println("> " + message);
+    System.out.println("SERVER MSG> " + message);
   }
 
   
@@ -103,40 +102,18 @@ public class ClientConsole implements ChatIF
    */
   public static void main(String[] args) 
   {
-	String loginID ="";
-    String host = "";
     int port = 0;  //The port number
-
-    try
-    {
-      loginID = args[0];
-    }
-    catch(ArrayIndexOutOfBoundsException e)
-    {
-    	System.out.println("ERROR - No login ID specified. Connection aborted.");
-    	System.exit(0);
-    }
-    
-    try
-    {
-      host = args[1];
-    }
-    catch(ArrayIndexOutOfBoundsException e)
-    {
-      host = "localhost";
-    }
   
- //****Changed for question 5b. Obtaining port # from cmd 
   try
     {
-      port = Integer.parseInt(args[2]);
+      port = Integer.parseInt(args[0]);
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
       port = DEFAULT_PORT;
     }
 	
-    ClientConsole chat = new ClientConsole(loginID, host,port);
+    ServerConsole chat = new ServerConsole(port);
     chat.accept();  //Wait for console data
   
 }

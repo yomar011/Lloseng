@@ -45,12 +45,49 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
-  public void handleMessageFromClient
-    (Object msg, ConnectionToClient client)
-  {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
-  }
+   
+    //****Question 7. Adding the 'login id' command line argument.
+	public void handleMessageFromClient(Object msg, ConnectionToClient client) {
+	String message = msg.toString();
+		if (message.startsWith("#login")){
+		System.out.println("Message received: " + msg + " from " + client);
+		this.sendToAllClients(msg);
+		}
+
+		
+
+
+		if (message.startsWith("#")) {
+			String[] params = message.substring(1).split(" ");
+			if (params[0].equalsIgnoreCase("login") && params.length > 1) {
+				if (client.getInfo("Login ID") == null) {
+					client.setInfo("Login ID", params[1]);
+				} else {
+					try {
+						Object sendToClientMsg = "Your login ID has already been set!";
+						client.sendToClient(sendToClientMsg);
+					} catch (IOException e) {
+					}
+				}
+
+			}
+		} else {
+			if (client.getInfo("Login ID") == null) {
+				try {
+					Object sendToClientMsg = "Please set a login ID before messaging the server!";
+					client.sendToClient(sendToClientMsg);
+					client.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				System.out.println("Message received: " + msg + " from " + client.getInfo("Login ID"));
+				Object sendToClientMsg = client.getInfo("Login ID") + "> " + message;
+				this.sendToAllClients(sendToClientMsg);
+			}
+		}
+
+	}
     
   /**
    * This method overrides the one in the superclass.  Called
@@ -72,15 +109,26 @@ public class EchoServer extends AbstractServer
       ("Server has stopped listening for connections.");
   }
   
-  //Class methods ***************************************************
-    // **** Changed for E5 Part c
-  protected void clientConnected(ConnectionToClient client) {
-	  System.out.println("Please be informed that the client is successfully connected (Question E5 part c);
+  //Question 5c. Nice message to show client connected
+   protected void clientConnected(ConnectionToClient client) {
+		   System.out.println("Client connected.");
   }
+   
+ //Question 5c. Nice message to show client disconnected 
+  synchronized protected void clientDisconnected(ConnectionToClient client) {	
+		System.out.println("Client disconnected.");
+  }
+
+  synchronized protected void clientException(
+    ConnectionToClient client, Throwable exception) {
+		try { 
+			  client.close();
+	   }catch (IOException  e) {}
+	
+	}
   
-  synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
-	  System.out.println("Please be informed that the client is successfully disconnected (Question E5 part c);
-  } 
+  //Class methods ***************************************************
+  
   /**
    * This method is responsible for the creation of 
    * the server instance (there is no UI in this phase).
@@ -90,15 +138,7 @@ public class EchoServer extends AbstractServer
    */
   public static void main(String[] args) 
   {
-	  // **** Changed for E5 Part c to let users input the desired port number
-	  Scanner scan = new Scanner(System.in);
-	  System.out.println("Please Enter any Dynamic Port Number");
-	  int port = scan.nextInt();  //The port number
-    if(port<4092) {
-    	System.out.println("Port Number indicated is not dynamic");
-    	System.exit(0);
-    }
-
+    int port = 0; //Port to listen on
 
     try
     {
@@ -120,5 +160,66 @@ public class EchoServer extends AbstractServer
       System.out.println("ERROR - Could not listen for clients!");
     }
   }
+ 
+ 
+  //**** Question 6c. Allowing the user to input commands into the server side.
+	public void handleMessageFromServerUI(String message) {
+		if (message.startsWith("#")) {
+			String[] parameters = message.split(" ");
+			String command = parameters[0];
+			switch (command) {
+			case "#quit":
+				// closes the server and then exits it
+				try {
+					System.out.println("Quitting...");
+					this.close();
+				} catch (IOException e) {
+					System.exit(1);
+				}
+				System.exit(0);
+				break;
+			case "#stop":
+				this.stopListening();
+				this.sendToAllClients("WARNING - Server has stopped listening for connections.");
+				break;
+			case "#close":
+				try {
+					this.close();
+				} catch (IOException e) {
+				}
+				break;
+			case "#setport":
+				if (!this.isListening() && this.getNumberOfClients() < 1) {
+					super.setPort(Integer.parseInt(parameters[1]));
+					System.out.println("Port set to " + Integer.parseInt(parameters[1]));
+				} else {
+					System.out.println("Cannot set the port while the server is connected.");
+				}
+				break;
+			case "#start":
+				if (!this.isListening()) {
+					try {
+						this.listen();
+					} catch (IOException e) {
+						// error listening for clients
+					}
+				} else {
+					System.out.println("Server already listening for clients.");
+				}
+				break;
+			case "#getport":
+				System.out.println("The current port is " + this.getPort());
+				break;
+			default:
+				System.out.println("Invalid command: '" + command + "'");
+				break;
+			}
+		} else {
+
+			this.sendToAllClients("SERVER MSG> "+message);
+		}
+	}
+
+ 
 }
 //End of EchoServer class
